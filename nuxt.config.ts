@@ -4,6 +4,9 @@ export default defineNuxtConfig({
   typescript: {
     strict: true
   },
-  compatibilityDate: '2024-04-03'
+  compatibilityDate: '2024-04-03',
+  runtimeConfig: {
+    openaiApiKey: process.env.OPENAI_API_KEY
+  }
 })
 
