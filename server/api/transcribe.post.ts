@@ -28,7 +28,14 @@ export default defineEventHandler(async (event) => {
   const client = new OpenAI({ apiKey: config.openaiApiKey as string })
 
   try {
+    let prompt = '音訊內容主要為台灣口音的中文。\n' +
+        '請直接輸出 SRT 內容，不要包含任何額外的說明文字或代碼塊標記。\n' +
+        '公司名稱是財經M平方，請判斷是否產生對的公司名稱。\n' +
+        '音檔是關於總體經濟的話題，因此會提到很多經濟、財經等名詞\n' +
+        '除此之外希望可以移除贅字如還有、然後、嗯嗯等等的';
+
     const transcription = await client.audio.transcriptions.create({
+      prompt: prompt,
       file: createReadStream(tmpPath) as any,
       model: 'whisper-1',
       // language: 'zh', // 讓模型自動偵測語言，避免空結果
@@ -117,6 +124,7 @@ export default defineEventHandler(async (event) => {
           "產業決策平臺": "產業決策平台",
           "MNAI": "MM AI",
           "財經平方": "財經M平方",
+          "財經一平方": "財經M平方",
           "財經MP房": "財經M平方",
           "財經平凡": "財經M平方",
           "M明方": "M平方",
