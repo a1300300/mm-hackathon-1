@@ -1,7 +1,7 @@
 <template>
   <div class="layout">
     <header class="header">
-      <NuxtLink to="/" class="brand">Nuxt Site</NuxtLink>
+      <NuxtLink to="/" class="brand">🐷🐷🐷</NuxtLink>
       <nav class="nav">
         <NuxtLink to="/">Home</NuxtLink>
         <NuxtLink to="/about">About</NuxtLink>

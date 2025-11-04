@@ -1,16 +1,16 @@
 <template>
   <section class="container">
-    <Hero title="Welcome to Nuxt 3" subtitle="Let's build something great." />
-    <div class="content">
-      <p>This is your new Nuxt 3 app. Edit <code>pages/index.vue</code> to get started.</p>
-      <p>
-        Learn more in the
-        <a href="https://nuxt.com/docs" target="_blank" rel="noreferrer">Nuxt docs</a>.
-      </p>
-    </div>
+    <Hero title="MM 共學會" subtitle="MP3音檔產生字幕" />
+<!--    <div class="content">-->
+<!--      <p>This is your new Nuxt 3 app. Edit <code>pages/index.vue</code> to get started.</p>-->
+<!--      <p>-->
+<!--        Learn more in the-->
+<!--        <a href="https://nuxt.com/docs" target="_blank" rel="noreferrer">Nuxt docs</a>.-->
+<!--      </p>-->
+<!--    </div>-->
 
     <div class="uploader">
-      <h3>Upload Audio to Transcribe (繁體中文)</h3>
+      <h3>上傳MP3音檔 (繁體中文)</h3>
       <form @submit.prevent="onSubmit">
         <input type="file" accept="audio/*" @change="onFile" />
         <button :disabled="!file || loading">{{ loading ? 'Processing…' : 'Transcribe & Download SRT' }}</button>
