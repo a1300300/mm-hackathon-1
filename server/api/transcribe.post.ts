@@ -26,6 +26,11 @@ export default defineEventHandler(async (event) => {
     const langPart = form.find((p) => p.name === 'lang')
     const lang = (langPart && langPart.data ? langPart.data.toString() : 'zh') as 'zh' | 'en'
 
+    // 新增：讀取前端傳來的 corrections JSON 字串
+    const correctionsPart = form.find((p) => p.name === 'corrections')
+    const correctionsJson = correctionsPart && correctionsPart.data ? correctionsPart.data.toString() : ''
+
+
     const tmpPath = join(tmpdir(), `${Date.now()}-${audio.filename}`)
     await fsp.writeFile(tmpPath, audio.data)
 
@@ -48,7 +53,7 @@ export default defineEventHandler(async (event) => {
         })
 
         // dict（只對中文字幕做校正）
-        const corrections: Record<string, string> = {
+        const defaultCorrections: Record<string, string> = {
             "深層式AI": "生成式AI",
             "生存式AI": "生成式AI",
             "Sentence AI": "生成式AI",
@@ -188,6 +193,23 @@ export default defineEventHandler(async (event) => {
             "曝刮機": "曝光機",
             "Ethereum": "Isaiah"
         };
+
+        // 決定本次要使用的字典：
+        // 若前端有傳 corrections 且 JSON 合法，就用那份；否則用 defaultCorrections。
+        let corrections: Record<string, string> = defaultCorrections
+        if (correctionsJson.trim()) {
+            try {
+                const parsed = JSON.parse(correctionsJson)
+                if (parsed && typeof parsed === 'object') {
+                    // 你可以選擇「完全覆蓋」或「合併」：
+                    // 覆蓋： corrections = parsed as Record<string, string>
+                    // 合併： corrections = { ...defaultCorrections, ...parsed }
+                    corrections = { ...defaultCorrections, ...parsed }
+                }
+            } catch (e) {
+                // JSON 解析失敗就忽略，沿用 defaultCorrections
+            }
+        }
 
         // 取出 SRT 純文字
         let srt = (transcription as any).text ?? (transcription as any)
