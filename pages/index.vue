@@ -9,7 +9,8 @@
         <label class="lang-select">
           字幕語言：
           <select v-model="subtitleLang">
-            <option value="zh">繁體中文</option>
+            <option value="zh-TW">繁體中文</option>
+            <option value="zh-CN">簡體中文</option>
             <option value="en">英文</option>
           </select>
         </label>
@@ -62,7 +63,7 @@ const uploadProgress = ref(0)
 const isUploading = ref(false)
 
 // 新增：字幕語言，預設繁體中文
-const subtitleLang = ref<'zh' | 'en'>('zh')
+const subtitleLang = ref<'zh-TW' | 'zh-CN' | 'en'>('zh-TW')
 
 // 新增：錯字字典（前端可編輯）。這邊只放幾筆示範，你可以把整份後端字典貼進來。
 const correctionsText = ref<string>(

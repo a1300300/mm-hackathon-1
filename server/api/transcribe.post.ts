@@ -22,9 +22,9 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: 'No file uploaded' })
     }
 
-    // 讀取字幕語言，預設 zh
+    // 讀取字幕語言，預設 zh-TW
     const langPart = form.find((p) => p.name === 'lang')
-    const lang = (langPart && langPart.data ? langPart.data.toString() : 'zh') as 'zh' | 'en'
+    const lang = (langPart && langPart.data ? langPart.data.toString() : 'zh-TW') as 'zh-TW' | 'zh-CN' | 'en'
 
     // 新增：讀取前端傳來的 corrections JSON 字串
     const correctionsPart = form.find((p) => p.name === 'corrections')
@@ -244,8 +244,43 @@ export default defineEventHandler(async (event) => {
 
         srt = entries.join('\n')
 
-        // 如果指定字幕語言為英文：再呼叫一次 OpenAI，將「字幕文字」翻成英文，保持 SRT 結構與時間軸不變
-        if (lang === 'en') {
+        // 如果指定字幕語言為簡體中文：再呼叫一次 OpenAI，將「字幕文字」翻成簡體中文，保持 SRT 結構與時間軸不變
+        if (lang === 'zh-CN') {
+            const translation = await client.responses.create({
+                model: 'gpt-4.1-mini',
+                input: [
+                    {
+                        role: 'system',
+                        content:
+                            'You are a subtitle translation assistant. ' +
+                            'Translate Traditional Chinese subtitles to Simplified Chinese, ' +
+                            'but keep the SRT structure, numbering, and timestamps completely unchanged.'
+                    },
+                    {
+                        role: 'user',
+                        content:
+                            '請將以下 SRT 格式的「繁體中文字幕」翻譯成「簡體中文字幕」。\n' +
+                            '重要規則：\n' +
+                            '1. 所有編號行與時間碼行（包含 --> 與時間）必須完全照抄，不可以增加、刪除或修改。\n' +
+                            '2. 只翻譯字幕文字行（時間碼下方的那幾行）。\n' +
+                            '3. 保持行數與分段結構一致。\n' +
+                            '4. 不要在輸出中加入任何說明文字或程式碼標記，只輸出純 SRT 內容。\n\n' +
+                            '以下是要翻譯的 SRT：\n\n' +
+                            String(srt)
+                    }
+                ]
+            })
+
+            try {
+                const output = (translation as any).output?.[0]?.content?.[0]?.text
+                if (output && typeof output === 'string') {
+                    srt = output.trim()
+                }
+            } catch {
+                // 如果解析失敗，就 fallback 用原本的繁體中文 SRT
+            }
+        }
+        else if (lang === 'en') {
             const translation = await client.responses.create({
                 model: 'gpt-4.1-mini',
                 input: [
@@ -283,7 +318,12 @@ export default defineEventHandler(async (event) => {
 
         // 設定回應為可下載的 SRT 檔案
         const safeBase = basename(audio.filename, '.mp3').replace(/\.srt$/i, '')
-        const suffix = lang === 'en' ? '.en.srt' : '.srt'
+        let suffix = '.srt' // 預設為繁體中文 .srt
+        if (lang === 'en') {
+            suffix = '.en.srt'
+        } else if (lang === 'zh-CN') {
+            suffix = '.zh-CN.srt'
+        }
         const downloadName = `${safeBase}${suffix}`
 
         setResponseHeader(event, 'Content-Type', 'application/x-subrip; charset=utf-8')
